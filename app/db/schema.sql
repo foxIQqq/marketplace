@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(50) NOT NULL,
+    password VARCHAR(100) NOT NULL,
     balance NUMERIC(10, 2) DEFAULT 0.00,
     is_admin BOOLEAN DEFAULT FALSE,
     is_seller BOOLEAN DEFAULT FALSE,
