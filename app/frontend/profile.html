@@ -48,6 +48,36 @@
                 {% endfor %}
             </div>
         </section>
+
+        <section>
+            <h2>Корзина</h2>
+            <div class="cart-container">
+                {% for cart_item in cart_items %}
+                <div class="cart-item">
+                    <h3>{{ cart_item.name }}</h3>
+                    <p class="price">{{ cart_item.price }} руб.</p>
+                    <form method="post" action="/cart/toggle/{{ cart_item.id }}">
+                        <button type="submit" class="toggle-btn">
+                            {{ "☑" if cart_item.is_selected else "☐" }}
+                        </button>
+                    </form>
+                    <form method="post" action="/cart/remove/{{ cart_item.id }}">
+                        <button type="submit" class="remove-btn">Удалить</button>
+                    </form>
+                </div>
+                {% endfor %}
+                <div class="cart-summary">
+                    <p>Сумма отмеченных: {{ total_selected_price }} руб.</p>
+                    {% if request.query_params.get("error") == "low_balance" %}
+                        <p class="error-message">Недостаточно средств для покупки выбранных товаров.</p>
+                    {% else %}
+                        <form method="post" action="/cart/buy">
+                            <button type="submit" class="buy-cart-btn">Купить</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </section>        
         
         <section>
             <h2>Купленные товары</h2>

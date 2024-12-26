@@ -39,6 +39,14 @@
                             <button type="submit" class="favorite-btn">🤍</button>
                             {% endif %}
                         </form>
+                        <br>
+                        <form method="post" action="/cart/{{ item.id }}">
+                            {% if item.in_cart %}
+                                <button type="button" class="cart-btn added" disabled>Добавлено в корзину</button>
+                            {% else %}
+                                <button type="submit" class="cart-btn">🛒 В корзину</button>
+                            {% endif %}
+                        </form>
                         <a href="/buy/{{ item.id }}"><button class="buy-btn">Купить</button></a>
                     {% else %}
                         <p class="info">Это ваш товар.</p>

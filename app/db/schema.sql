@@ -87,4 +87,14 @@ CREATE TABLE IF NOT EXISTS seller_request (
     price DECIMAL(10, 2) NOT NULL,
     category VARCHAR(100) NOT NULL,
     status VARCHAR(10) DEFAULT 'pending'
-)
+);
+
+-- 10. Таблица корзины (cart)
+CREATE TABLE cart (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    is_selected BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+);
