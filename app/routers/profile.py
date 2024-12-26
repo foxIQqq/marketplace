@@ -119,24 +119,29 @@ async def sells_page(request: Request, user=Depends(get_current_user)):
     if not user or not user["is_seller"]:
         return RedirectResponse(url="/profile", status_code=303)
 
-    # Получаем активные товары
+    # Товары на продаже (confirmed)
     query_items = """
-    SELECT items.name, items.category, items.price, items.quantity, 
-           COALESCE(sr.status = 'denied', FALSE) AS denied
-    FROM items 
-    LEFT JOIN seller_request AS sr 
-    ON items.seller_id = sr.user_id AND items.name = sr.item_name
-    WHERE items.seller_id = :seller_id
+    SELECT item_name, category, price, quantity
+    FROM seller_request
+    WHERE user_id = :seller_id AND status = 'confirmed'
     """
     sell_items = await database.fetch_all(query=query_items, values={"seller_id": user["id"]})
 
-    # Получаем заявки со статусом "pending"
+    # Товары в рассмотрении (pending)
     query_pending_requests = """
-    SELECT item_name, category, price, quantity
-    FROM seller_request
-    WHERE user_id = :seller_id AND status = 'pending'
+    SELECT sr.item_name, sr.category, sr.price, sr.quantity
+    FROM seller_request AS sr
+    WHERE sr.user_id = :seller_id AND sr.status = 'pending'
     """
     pending_requests = await database.fetch_all(query=query_pending_requests, values={"seller_id": user["id"]})
+
+    # Отклоненные заявки (denied)
+    query_denied_items = """
+    SELECT sr.item_name, sr.category, sr.price, sr.quantity
+    FROM seller_request AS sr
+    WHERE sr.user_id = :seller_id AND sr.status = 'denied'
+    """
+    denied_items = await database.fetch_all(query=query_denied_items, values={"seller_id": user["id"]})
 
     return templates.TemplateResponse(
         "sells.html", {
@@ -144,8 +149,10 @@ async def sells_page(request: Request, user=Depends(get_current_user)):
             "user": user,
             "sell_items": [dict(item) for item in sell_items],
             "pending_requests": [dict(request) for request in pending_requests],
+            "denied_items": [dict(item) for item in denied_items],
         }
     )
+
 
 
 

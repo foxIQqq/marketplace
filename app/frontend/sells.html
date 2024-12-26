@@ -8,38 +8,31 @@
 </head>
 <body>
     <header>
-        <h1>Мои товары на продаже</h1>
-        <a href="/profile"><button>Покупки</button></a>
+        <h1>Мои продажи</h1>
+        <a href="/profile"><button>Вернуться в профиль</button></a>
     </header>
     <main>
-        <div class="sells-container">
-            {% for item in sell_items %}
-            <div class="sell-item">
-                {% if not item.denied %}
-                    <h3>{{ item.name }}</h3>
+        <section>
+            <h2>Продаваемые товары</h2>
+            <div class="sells-container">
+                {% for item in sell_items %}
+                <div class="sell-item">
+                    <h3>{{ item.item_name }}</h3>
                     <p>Категория: {{ item.category }}</p>
                     <p>Цена: {{ item.price }} руб.</p>
                     <p>Количество: {{ item.quantity }}</p>
-                {% endif %}
+                </div>
+                {% else %}
+                <p>Нет подтвержденных товаров на продаже.</p>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-        
+        </section>
+
         <hr>
-        <h2>Заявки в рассмотрении</h2>
-        <div class="pending-requests">
-            {% for item in sell_items %}
-            <div class="sell-item">
-                {% if item.denied %}
-                    <h3>{{ item.name }}</h3>
-                    <p>Категория: {{ item.category }}</p>
-                    <p>Цена: {{ item.price }} руб.</p>
-                    <p>Количество: {{ item.quantity }}</p>
-                    <p style="color: red;">Ваша заявка отклонена</p>
-                {% endif %}
-            </div>
-            {% endfor %}
-            {% if pending_requests %}
+
+        <section>
+            <h2>Заявки</h2>
+            <div class="pending-requests">
                 {% for request in pending_requests %}
                 <div class="pending-request">
                     <h4>{{ request.item_name }}</h4>
@@ -48,38 +41,54 @@
                     <p>Количество: {{ request.quantity }}</p>
                     <p style="color: orange;">В рассмотрении</p>
                 </div>
+                {% else %}
+                <p>Нет активных заявок на рассмотрении.</p>
                 {% endfor %}
-            {% else %}
-                <p>Нет активных заявок.</p>
-            {% endif %}
-        </div>
+            </div>
+            <div class="denied-requests">
+                {% for item in denied_items %}
+                <div class="denied-item">
+                    <h4>{{ item.item_name }}</h4>
+                    <p>Категория: {{ item.category }}</p>
+                    <p>Цена: {{ item.price }} руб.</p>
+                    <p>Количество: {{ item.quantity }}</p>
+                    <p style="color: red;">Заявка отклонена</p>
+                </div>
+                {% else %}
+                <p>Нет отклоненных заявок.</p>
+                {% endfor %}
+            </div>
+        </section>
 
         <hr>
-        <h2>Добавить новый товар</h2>
-        <form method="post" action="/profile/sells/add" enctype="multipart/form-data">
-            <div>
-                <label for="full_name">ФИО:</label>
-                <input type="text" id="full_name" name="full_name" required>
-            </div>
-            <div>
-                <label for="item_name">Наименование товара:</label>
-                <input type="text" id="item_name" name="item_name" required>
-            </div>
-            <div>
-                <label for="quantity">Количество:</label>
-                <input type="number" id="quantity" name="quantity" min="1" required>
-            </div>
-            <div>
-                <label for="price">Цена:</label>
-                <input type="number" id="price" name="price" min="0.01" step="0.01" required>
-            </div>
-            <div>
-                <label for="category">Категория:</label>
-                <input type="text" id="category" name="category" required>
-            </div>
-            <button type="submit">Отправить заявку</button>
-        </form>
-    </main>    
+
+        <section>
+            <h2>Добавить новый товар</h2>
+            <form method="post" action="/profile/sells/add" enctype="multipart/form-data">
+                <div>
+                    <label for="full_name">ФИО:</label>
+                    <input type="text" id="full_name" name="full_name" required>
+                </div>
+                <div>
+                    <label for="item_name">Наименование товара:</label>
+                    <input type="text" id="item_name" name="item_name" required>
+                </div>
+                <div>
+                    <label for="quantity">Количество:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" required>
+                </div>
+                <div>
+                    <label for="price">Цена:</label>
+                    <input type="number" id="price" name="price" min="0.01" step="0.01" required>
+                </div>
+                <div>
+                    <label for="category">Категория:</label>
+                    <input type="text" id="category" name="category" required>
+                </div>
+                <button type="submit">Отправить заявку</button>
+            </form>
+        </section>
+    </main>
     <footer>
         <p>© 2024 Marketplace</p>
     </footer>
