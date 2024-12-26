@@ -51,30 +51,6 @@ async def home_page(request: Request, user: Optional[dict] = Depends(get_current
     )
 
 
-
-# @router.post("/remove_sale/{item_id}")
-# async def remove_sale(item_id: int, user=Depends(get_current_user)):
-#     """Снятие предмета с продажи."""
-#     if not user:
-#         return RedirectResponse(url="/login", status_code=303)
-    
-#     # Если пользователь администратор, он может снять любой предмет
-#     if user["is_admin"]:
-#         query = "DELETE FROM item_sales WHERE item_id = :item_id"
-#         await database.execute(query=query, values={"item_id": item_id})
-#         return RedirectResponse(url="/", status_code=303)
-
-#     # Владелец может снять только свои предметы
-#     query_check = """
-#     SELECT 1 FROM inventory 
-#     WHERE item_id = :item_id AND user_id = :user_id
-#     """
-#     result = await database.fetch_one(query=query_check, values={"item_id": item_id, "user_id": user["id"]})
-#     if result:
-#         query = "DELETE FROM item_sales WHERE item_id = :item_id"
-#         await database.execute(query=query, values={"item_id": item_id})
-#     return RedirectResponse(url="/", status_code=303)
-
 # Добавление/удаление из избранного
 @router.post("/favorites/{item_id}")
 async def toggle_favorite(item_id: int, user=Depends(get_current_user)):

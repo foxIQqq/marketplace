@@ -39,9 +39,11 @@ CREATE TABLE IF NOT EXISTS item_embeddings (
 -- 5. Таблица рекомендаций (recommendation_cache)
 CREATE TABLE IF NOT EXISTS recommendation_cache (
     id SERIAL PRIMARY KEY,
+    user_id INT,
     recommended_item_id INT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (recommended_item_id) REFERENCES items(id) ON DELETE CASCADE
+    FOREIGN KEY (recommended_item_id) REFERENCES items(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 6. Таблица покупок (purchases)

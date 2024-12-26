@@ -119,21 +119,66 @@ async def sells_page(request: Request, user=Depends(get_current_user)):
     if not user or not user["is_seller"]:
         return RedirectResponse(url="/profile", status_code=303)
 
+    # Получаем активные товары
     query_items = """
-    SELECT name, category, price, quantity 
+    SELECT items.name, items.category, items.price, items.quantity, 
+           COALESCE(sr.status = 'denied', FALSE) AS denied
     FROM items 
-    WHERE seller_id = :seller_id
+    LEFT JOIN seller_request AS sr 
+    ON items.seller_id = sr.user_id AND items.name = sr.item_name
+    WHERE items.seller_id = :seller_id
     """
     sell_items = await database.fetch_all(query=query_items, values={"seller_id": user["id"]})
-    sell_items = [dict(item) for item in sell_items]
+
+    # Получаем заявки со статусом "pending"
+    query_pending_requests = """
+    SELECT item_name, category, price, quantity
+    FROM seller_request
+    WHERE user_id = :seller_id AND status = 'pending'
+    """
+    pending_requests = await database.fetch_all(query=query_pending_requests, values={"seller_id": user["id"]})
 
     return templates.TemplateResponse(
         "sells.html", {
             "request": request,
             "user": user,
-            "sell_items": sell_items  # Передаём sell_items, как ожидает шаблон
+            "sell_items": [dict(item) for item in sell_items],
+            "pending_requests": [dict(request) for request in pending_requests],
         }
     )
+
+
+
+@router.post("/profile/sells/add")
+async def add_new_item_request(
+    user=Depends(get_current_user),
+    full_name: str = Form(...),
+    item_name: str = Form(...),
+    quantity: int = Form(...),
+    price: float = Form(...),
+    category: str = Form(...),
+):
+    """Подача заявки на добавление нового товара."""
+    if not user or not user["is_seller"]:
+        return RedirectResponse(url="/profile", status_code=303)
+
+    query = """
+    INSERT INTO seller_request (user_id, full_name, item_name, quantity, price, category, status) 
+    VALUES (:user_id, :full_name, :item_name, :quantity, :price, :category, 'pending')
+    """
+    await database.execute(
+        query=query,
+        values={
+            "user_id": user["id"],
+            "full_name": full_name, 
+            "item_name": item_name,
+            "quantity": quantity,
+            "price": price,
+            "category": category,
+        },
+    )
+    return RedirectResponse(url="/profile/sells", status_code=303)
+
 
 @router.post("/cart/remove/{cart_id}")
 async def remove_from_cart(cart_id: int, user=Depends(get_current_user)):

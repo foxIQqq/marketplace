@@ -12,7 +12,6 @@ async def buy_item_page(request: Request, item_id: int, user=Depends(get_current
     if not user:
         raise HTTPException(status_code=401, detail="Требуется авторизация")
 
-    # Получаем информацию о скине и его цене
     query_item = """
     SELECT name, price, seller_id
     FROM items
@@ -44,7 +43,6 @@ async def buy_item(item_id: int, user=Depends(get_current_user)):
         raise HTTPException(status_code=401, detail="Требуется авторизация")
 
     async with database.transaction():
-        # Получаем информацию о скине и продавце
         query_item = """
         SELECT price, seller_id, quantity
         FROM items

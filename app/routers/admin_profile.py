@@ -88,13 +88,4 @@ async def deny_request(request_id: int = Form(...), admin=Depends(get_current_us
     query_update_status = "UPDATE seller_request SET status = 'denied' WHERE id = :request_id"
     await database.execute(query=query_update_status, values={"request_id": request_id})
 
-    # # Добавляем уведомление пользователю
-    # query_notify_user = """
-    # INSERT INTO notifications (user_id, message) 
-    # SELECT user_id, 'Ваша заявка отклонена' 
-    # FROM seller_request
-    # WHERE id = :request_id
-    # """
-    # await database.execute(query=query_notify_user, values={"request_id": request_id})
-
     return RedirectResponse(url="/admin", status_code=303)
