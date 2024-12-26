@@ -43,19 +43,39 @@
             {% endfor %}
         </table>
 
-        <h3>Снять предмет с продажи</h3>
-        <form method="post" action="/admin/remove_sale">
-            <label for="skin_id">Выберите предмет:</label>
-            <select name="skin_id" id="skin_id">
-                {% for skin in skins_for_removal %}
-                <option value="{{ skin.skin_id }}">{{ skin.skin_id }} - {{ skin.name }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Снять с продажи</button>
-        </form>
+        <h3>Заявки на продавцов</h3>
+        <table>
+            <tr>
+                <th>Имя</th>
+                <th>Предмет</th>
+                <th>Категория</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Действия</th>
+            </tr>
+            {% for request in seller_requests %}
+            <tr>
+                <td>{{ request.full_name }}</td>
+                <td>{{ request.item_name }}</td>
+                <td>{{ request.category }}</td>
+                <td>{{ request.price }}</td>
+                <td>{{ request.quantity }}</td>
+                <td>
+                    <form method="post" action="/admin/approve_request" style="display:inline;">
+                        <input type="hidden" name="request_id" value="{{ request.id }}">
+                        <button type="submit">Одобрить</button>
+                    </form>
+                    <form method="post" action="/admin/deny_request" style="display:inline;">
+                        <input type="hidden" name="request_id" value="{{ request.id }}">
+                        <button type="submit">Отклонить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>        
     </main>
     <footer>
-        <p>© 2024 CS2 Marketplace</p>
+        <p>© 2024 Marketplace</p>
     </footer>
 </body>
 </html>

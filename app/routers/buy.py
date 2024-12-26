@@ -16,7 +16,7 @@ async def buy_item_page(request: Request, item_id: int, user=Depends(get_current
     query_item = """
     SELECT name, price, seller_id
     FROM items
-    WHERE item_id = :item_id
+    WHERE id = :item_id
     """
     item = await database.fetch_one(query=query_item, values={"item_id": item_id})
     if not item:
@@ -46,9 +46,9 @@ async def buy_item(item_id: int, user=Depends(get_current_user)):
     async with database.transaction():
         # Получаем информацию о скине и продавце
         query_item = """
-        SELECT price, seller_id
+        SELECT price, seller_id, quantity
         FROM items
-        WHERE item_id = :item_id
+        WHERE id = :item_id
         """
         item = await database.fetch_one(query=query_item, values={"item_id": item_id})
         if not item:
@@ -59,6 +59,10 @@ async def buy_item(item_id: int, user=Depends(get_current_user)):
         buyer_balance = await database.fetch_one(query=query_balance, values={"user_id": user["id"]})
         if buyer_balance["balance"] < item["price"]:
             raise HTTPException(status_code=400, detail="Недостаточно средств")
+
+        # Проверяем доступность товара
+        if item["quantity"] <= 0:
+            raise HTTPException(status_code=400, detail="Товар закончился")
 
         # Обновляем баланс покупателя и продавца
         update_buyer_balance = """
@@ -71,8 +75,7 @@ async def buy_item(item_id: int, user=Depends(get_current_user)):
         await database.execute(update_seller_balance, values={"amount": item["price"], "seller_id": item["seller_id"]})
 
         # Обновляем статус продажи и инвентарь
-        update_item_sale = "UPDATE items SET amount = amount - 1 WHERE id = :item_id"
-
+        update_item_sale = "UPDATE items SET quantity = quantity - 1 WHERE id = :item_id"
         await database.execute(update_item_sale, values={"item_id": item_id})
 
         # Логируем транзакцию в таблицу transactions
@@ -87,5 +90,5 @@ async def buy_item(item_id: int, user=Depends(get_current_user)):
             "price": item["price"]
         })
 
-    # Редирект на главную страницу после успешной покупки
-    return RedirectResponse(url="/", status_code=303)
+    # Редирект в профиль после успешной покупки
+    return RedirectResponse(url="/profile", status_code=303)

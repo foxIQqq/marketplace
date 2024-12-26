@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS items (
     price NUMERIC(10, 2),
     category VARCHAR(100) NOT NULL,
     seller_id INT NOT NULL,
-    exist INT,
+    quantity INT,
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -76,3 +76,15 @@ CREATE TABLE IF NOT EXISTS favorites (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
 );
+
+-- 9. Таблица заявок на становление продавцом (seller_request)
+CREATE TABLE IF NOT EXISTS seller_request (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    item_name VARCHAR(100) NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    status VARCHAR(10) DEFAULT 'pending'
+)

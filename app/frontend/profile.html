@@ -17,27 +17,52 @@
         </div>
     </header>
     <main>
+        <h2>Никнейм: <strong>{{ user.username }}</strong></h2>
         <h2>Ваш баланс: <strong>{{ balance }} руб.</strong></h2>
-        <h2>Ваши скины</h2>
-        <div class="card-container">
-            {% for item in user_items %}
-            <div class="card">
-                <h3>{{ item.name }}</h3>
-                <p class="price">{{ item.price or "Не оценен" }} руб.</p>
-                {% if item.is_for_sale %}
-                <p>Выставлен на продажу за {{ item.price }} руб.</p>
-                <form method="post" action="/remove_sale/{{ item.id }}">
-                    <button type="submit" class="remove-btn">Снять с продажи</button>
-                </form>
+        <div class="actions">
+            {% if not user.is_seller %}
+                {% if is_seller_request_pending %}
+                    <p>Ваша заявка в рассмотрении</p>
                 {% else %}
-                <a href="/sell/{{ item.id }}" class="sell-btn">Продать</a>
+                    <form method="get" action="/profile/become_a_seller">
+                        <button type="submit" class="become-seller-btn">Стать продавцом</button>
+                    </form>
                 {% endif %}
+            {% else %}
+                <a href="/profile/sells"><button class="seller-btn">Продажи</button></a>
+            {% endif %}
+        </div>        
+        <section>
+            <h2>Избранное</h2>
+            <div class="favorites-container">
+                {% for favorite in favorites %}
+                <div class="favorite-item">
+                    <h3>{{ favorite.name }}</h3>
+                    <p class="price">{{ favorite.price or "Не оценен" }} руб.</p>
+                    <!-- Кнопка удаления из избранного -->
+                    <form method="post" action="/favorites/{{ favorite.item_id }}">
+                        <button type="submit" class="favorite-btn filled">❤️</button>
+                    </form>
+                    <a href="/buy/{{ favorite.item_id }}"><button class="buy-btn">Купить</button></a>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
+        </section>
+        
+        <section>
+            <h2>Купленные товары</h2>
+            <div class="purchases-container">
+                {% for purchase in purchases %}
+                <div class="purchase-item">
+                    <h3>{{ purchase.name }}</h3>
+                    <p class="price">Цена: {{ purchase.price }} руб.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
     </main>
     <footer>
-        <p>© 2024 CS2 Marketplace</p>
+        <p>© 2024 Marketplace</p>
     </footer>
 </body>
 </html>

@@ -12,41 +12,35 @@ router = APIRouter()
 async def home_page(request: Request, user: Optional[dict] = Depends(get_current_user)):
     """Главная страница."""
     query_items_for_sale = """
-    SELECT items.name, items.price
+    SELECT id, name, price, category, seller_id
     FROM items
     """
     items_for_sale = await database.fetch_all(query=query_items_for_sale)
     items_for_sale = [dict(item) for item in items_for_sale]
 
-    # Добавляем информацию о текущем пользователе, если он авторизован
     for item in items_for_sale:
-        item["is_owned_by_user"] = user and item["user_id"] == user["id"]
+        item["is_owned_by_user"] = user and item["seller_id"] == user["id"]
 
-    # Избранные скины пользователя
-    favorite_items = []
     if user:
         query_favorites = """
-        SELECT items.id AS item_id, items.name, items.price
-        FROM items
-        JOIN favorites ON items.id = favorites.item_id
-        WHERE favorites.user_id = :user_id
+        SELECT item_id 
+        FROM favorites 
+        WHERE user_id = :user_id
         """
-        favorite_items = await database.fetch_all(query=query_favorites, values={"user_id": user["id"]})
-        favorite_items = [dict(item) for item in favorite_items]
-
-        # Добавляем флаг "избранное"
+        favorites = await database.fetch_all(query=query_favorites, values={"user_id": user["id"]})
+        favorite_ids = {fav["item_id"] for fav in favorites}
         for item in items_for_sale:
-            item["is_favorite"] = any(fav["item_id"] == item["item_id"] for fav in favorite_items)
-            item["is_owned_by_user"] = item["user_id"] == user["id"]
+            item["is_favorite"] = item["id"] in favorite_ids
 
     return templates.TemplateResponse(
         "index.html", {
             "request": request,
             "items": items_for_sale,
-            "favorite_items": favorite_items,
             "user": user,
         }
     )
+
+
 
 # @router.post("/remove_sale/{item_id}")
 # async def remove_sale(item_id: int, user=Depends(get_current_user)):

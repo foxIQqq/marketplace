@@ -22,12 +22,15 @@ async def register_page(request: Request):
 # Обработка логина
 @router.post("/login")
 async def login_process(request: Request, username: str = Form(...), password: str = Form(...)):
-    query = "SELECT id, password FROM users WHERE username = :username"
+    query = "SELECT id, password, is_admin FROM users WHERE username = :username"
     user = await database.fetch_one(query=query, values={"username": username})
     if not user or not pwd_context.verify(password, user["password"]):
         return templates.TemplateResponse("login.html", {"request": request, "error": "Неверный логин или пароль"})
     
     response = RedirectResponse(url="/profile", status_code=303)
+
+    if user["is_admin"]:
+        response = RedirectResponse(url="/admin", status_code=303)
     response.set_cookie(key="user_id", value=user["id"])
     return response
 

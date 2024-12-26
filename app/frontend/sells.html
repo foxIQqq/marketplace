@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои продажи</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Мои товары на продаже</h1>
+        <a href="/profile"><button>Покупки</button></a>
+    </header>
+    <main>
+        <div class="sells-container">
+            {% for item in sell_items %}
+            <div class="sell-item">
+                <h3>{{ item.name }}</h3>
+                <p>Категория: {{ item.category }}</p>
+                <p>Цена: {{ item.price }} руб.</p>
+                <p>Количество: {{ item.quantity }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 Marketplace</p>
+    </footer>
+</body>
+</html>

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 # from app.auth import router as steam_router
 from app.routers.auth_routes import router as auth_router
-from app.routers import main, profile, sell, buy
+from app.routers import main, profile, buy, admin_profile
 from app.db.database import database
 from fastapi.staticfiles import StaticFiles
 from app.utils.triggers import initialize_triggers
@@ -19,6 +19,7 @@ app.include_router(main.router)
 # app.include_router(sell.router)
 app.include_router(buy.router)
 app.include_router(auth_router)
+app.include_router(admin_profile.router)
 
 # Подключение к базе данных при старте приложения
 @app.on_event("startup")
