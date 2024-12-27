@@ -20,9 +20,12 @@ async def recommendations(request: Request, user):
     FROM items;
     """
     rows = await database.fetch_all(query=query_items)
-    rows = [str(row) for row in rows]
-    print(rows)
-    catalog = pd.DataFrame(rows, columns=["item_id", "category", "price"])
+    data = [dict(row) for row in rows]
+    catalog = pd.DataFrame(data, columns=["item_id", "category", "price"])
+    catalog["item_id"] = catalog["item_id"].astype(int)
+    catalog["category"] = catalog["category"].astype(str)
+    catalog["price"] = catalog["price"].astype(float)
+
 
     # Получение избранного
     async def get_favorites(user_id):
@@ -33,8 +36,9 @@ async def recommendations(request: Request, user):
         WHERE favorites.user_id = :user_id;
         """
         rows = await database.fetch_all(query=query, values={"user_id": user_id})
-        if rows:
-            df = pd.DataFrame(rows, columns=["item_id", "category", "price"])
+        data = [dict(row) for row in rows]
+        if data:
+            df = pd.DataFrame(data, columns=["item_id", "category", "price"])
             df["interaction"] = "favorite"
             return df
         return pd.DataFrame(columns=["item_id", "category", "price", "interaction"])
@@ -48,8 +52,9 @@ async def recommendations(request: Request, user):
         WHERE cart.user_id = :user_id;
         """
         rows = await database.fetch_all(query=query, values={"user_id": user_id})
-        if rows:
-            df = pd.DataFrame(rows, columns=["item_id", "category", "price"])
+        data = [dict(row) for row in rows]
+        if data:
+            df = pd.DataFrame(data, columns=["item_id", "category", "price"])
             df["interaction"] = "cart"
             return df
         return pd.DataFrame(columns=["item_id", "category", "price", "interaction"])
@@ -63,8 +68,9 @@ async def recommendations(request: Request, user):
         WHERE purchases.buyer_id = :user_id;
         """
         rows = await database.fetch_all(query=query, values={"user_id": user_id})
-        if rows:
-            df = pd.DataFrame(rows, columns=["item_id", "category", "price"])
+        data = [dict(row) for row in rows]
+        if data:
+            df = pd.DataFrame(data, columns=["item_id", "category", "price"])
             df["interaction"] = "buy"
             return df
         return pd.DataFrame(columns=["item_id", "category", "price", "interaction"])
@@ -97,9 +103,6 @@ async def recommendations(request: Request, user):
     negative_samples = available_items.sample(n=min(1000, len(available_items)))
     negative_samples["target"] = 0
     negative_samples["interaction"] = "none"
-
-    print(catalog.head())
-    print(catalog.dtypes)
 
 
     # Подготовка данных для обучения
