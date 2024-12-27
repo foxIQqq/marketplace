@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://market_admin:adminadmin@db:5432/marketplace
+      - BASE_URL=http://localhost:8000
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: marketplace_db
+    restart: always
+    environment:
+      POSTGRES_USER: market_admin
+      POSTGRES_PASSWORD: adminadmin
+      POSTGRES_DB: marketplace
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./app/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+volumes:
+  postgres_data:
