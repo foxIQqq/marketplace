@@ -20,33 +20,17 @@ CREATE TABLE IF NOT EXISTS items (
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 3. Таблица эмбеддингов пользователей (user_embeddings)
-CREATE TABLE IF NOT EXISTS user_embeddings (
-    id SERIAL PRIMARY KEY,
-    user_embedding FLOAT ARRAY,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- 4. Таблица эмбеддингов товаров (item_embeddings)
-CREATE TABLE IF NOT EXISTS item_embeddings (
-    id SERIAL PRIMARY KEY,
-    item_embeddings FLOAT ARRAY,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id) REFERENCES items(id) ON DELETE CASCADE
-);
-
--- 5. Таблица рекомендаций (recommendation_cache)
+-- 3. Таблица рекомендаций (recommendation_cache)
 CREATE TABLE IF NOT EXISTS recommendation_cache (
     id SERIAL PRIMARY KEY,
     user_id INT,
-    recommended_item_id INT,
+    item_id INT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (recommended_item_id) REFERENCES items(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 6. Таблица покупок (purchases)
+-- 4. Таблица покупок (purchases)
 CREATE TABLE IF NOT EXISTS purchases (
     id SERIAL PRIMARY KEY,
     buyer_id INT NOT NULL,
@@ -59,7 +43,7 @@ CREATE TABLE IF NOT EXISTS purchases (
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
 );
 
--- 7. Таблица истории действий (history)
+-- 5. Таблица истории действий (history)
 CREATE TABLE IF NOT EXISTS history (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -69,7 +53,7 @@ CREATE TABLE IF NOT EXISTS history (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 8. Таблица избранного (favorites)
+-- 6. Таблица избранного (favorites)
 CREATE TABLE IF NOT EXISTS favorites (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -79,7 +63,7 @@ CREATE TABLE IF NOT EXISTS favorites (
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
 );
 
--- 9. Таблица заявок на становление продавцом (seller_request)
+-- 7. Таблица заявок на становление продавцом (seller_request)
 CREATE TABLE IF NOT EXISTS seller_request (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -91,7 +75,7 @@ CREATE TABLE IF NOT EXISTS seller_request (
     status VARCHAR(10) DEFAULT 'pending'
 );
 
--- 10. Таблица корзины (cart)
+-- 8. Таблица корзины (cart)
 CREATE TABLE cart (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,

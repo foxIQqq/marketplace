@@ -76,7 +76,7 @@ async def become_seller_page(request: Request, user=Depends(get_current_user)):
 @router.post("/profile/become_a_seller")
 async def submit_seller_request(
     user=Depends(get_current_user),
-    full_name: str = Form(...),
+    full_name: str = Form(default=None),
     item_name: str = Form(None),
     quantity: int = Form(None),
     price: float = Form(None),
@@ -154,36 +154,44 @@ async def sells_page(request: Request, user=Depends(get_current_user)):
     )
 
 
-
-
 @router.post("/profile/sells/add")
 async def add_new_item_request(
     user=Depends(get_current_user),
-    full_name: str = Form(...),
-    item_name: str = Form(...),
-    quantity: int = Form(...),
-    price: float = Form(...),
-    category: str = Form(...),
+    full_name: str = Form(default=None),
+    item_name: str = Form(default=None),
+    quantity: int = Form(default=None),
+    price: float = Form(default=None),
+    category: str = Form(default=None),
+    file: UploadFile = None
 ):
     """Подача заявки на добавление нового товара."""
     if not user or not user["is_seller"]:
         return RedirectResponse(url="/profile", status_code=303)
+    
+    if file:
+        contents = await file.read()
+        reader = csv.DictReader(contents.decode("utf-8").splitlines())
+        items = [row for row in reader]
+    else:
+        items = [{"item_name": item_name, "quantity": quantity, "price": price, "category": category}]
 
     query = """
     INSERT INTO seller_request (user_id, full_name, item_name, quantity, price, category, status) 
     VALUES (:user_id, :full_name, :item_name, :quantity, :price, :category, 'pending')
     """
-    await database.execute(
-        query=query,
-        values={
-            "user_id": user["id"],
-            "full_name": full_name, 
-            "item_name": item_name,
-            "quantity": quantity,
-            "price": price,
-            "category": category,
-        },
-    )
+    for item in items:
+        await database.execute(
+            query=query,
+            values={
+                "user_id": user["id"],
+                "full_name": full_name, 
+                "item_name": item["item_name"],
+                "quantity": item["quantity"],
+                "price": item["price"],
+                "category": item["category"],
+            },
+        )
+
     return RedirectResponse(url="/profile/sells", status_code=303)
 
 
