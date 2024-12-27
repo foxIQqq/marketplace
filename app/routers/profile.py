@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from app.db.database import database
 from app.utils.auth import get_current_user
 from app.frontend.templates import templates
+from app.routers.recommendation import recommendations
 from starlette.status import HTTP_303_SEE_OTHER
 import csv
 
@@ -259,8 +260,12 @@ async def buy_selected_items(user=Depends(get_current_user)):
 
 
 @router.post("/logout")
-async def logout(request: Request):
+async def logout(request: Request, user=Depends(get_current_user)):
     """Выход из учетной записи."""
+
+    if user:  # Проверяем, что пользователь авторизован
+        await recommendations(request, user)  # Запускаем обновление recommendation_cache
+
     response = RedirectResponse(url="/", status_code=303)
     response.delete_cookie(key="user_id")  # Удаляем куку
     return response

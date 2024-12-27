@@ -11,7 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 router = APIRouter()
 
 @router.post("/train_model")
-async def recommendations(request: Request, user=Depends(get_current_user)):
+async def recommendations(request: Request, user):
     user_id = user["id"]
 
     # Получение всех товаров из каталога
@@ -20,12 +20,14 @@ async def recommendations(request: Request, user=Depends(get_current_user)):
     FROM items;
     """
     rows = await database.fetch_all(query=query_items)
+    rows = [str(row) for row in rows]
+    print(rows)
     catalog = pd.DataFrame(rows, columns=["item_id", "category", "price"])
 
     # Получение избранного
     async def get_favorites(user_id):
         query = """
-        SELECT item_id, category, price
+        SELECT items.id AS item_id, items.category, items.price
         FROM favorites
         LEFT JOIN items ON favorites.item_id = items.id
         WHERE favorites.user_id = :user_id;
@@ -40,10 +42,10 @@ async def recommendations(request: Request, user=Depends(get_current_user)):
     # Получение корзины
     async def get_cart(user_id):
         query = """
-        SELECT item_id, category, price
+        SELECT items.id AS item_id, items.category, items.price
         FROM cart
         LEFT JOIN items ON cart.item_id = items.id
-        WHERE cart.user_id = :user_id AND cart.is_selected = TRUE;
+        WHERE cart.user_id = :user_id;
         """
         rows = await database.fetch_all(query=query, values={"user_id": user_id})
         if rows:
@@ -55,7 +57,7 @@ async def recommendations(request: Request, user=Depends(get_current_user)):
     # Получение покупок
     async def get_purchases(user_id):
         query = """
-        SELECT item_id, category, price
+        SELECT items.id AS item_id, items.category, items.price
         FROM purchases
         LEFT JOIN items ON purchases.item_id = items.id
         WHERE purchases.buyer_id = :user_id;
@@ -67,6 +69,7 @@ async def recommendations(request: Request, user=Depends(get_current_user)):
             return df
         return pd.DataFrame(columns=["item_id", "category", "price", "interaction"])
 
+
     # Получение данных пользователя
     favorites = await get_favorites(user_id)
     cart = await get_cart(user_id)
@@ -75,7 +78,7 @@ async def recommendations(request: Request, user=Depends(get_current_user)):
     # Проверка, есть ли данные для обучения
     if favorites.empty and cart.empty and purchases.empty:
         # Пустые рекомендации при отсутствии данных пользователя
-        empty_recommendations = [{"user_id": user_id, "item_id": int(item_id)} for item_id in catalog["item_id"].sample(n=min(0, len(catalog)))]
+        empty_recommendations = [{"user_id": user_id, "item_id": int(item_id)} for item_id in catalog["item_id"].sample(n=min(10, len(catalog)))]
         query_insert = """
         INSERT INTO recommendation_cache (user_id, item_id)
         VALUES (:user_id, :item_id)
@@ -95,10 +98,23 @@ async def recommendations(request: Request, user=Depends(get_current_user)):
     negative_samples["target"] = 0
     negative_samples["interaction"] = "none"
 
+    print(catalog.head())
+    print(catalog.dtypes)
+
+
     # Подготовка данных для обучения
     combined = pd.concat([user_data, negative_samples], ignore_index=True)
+    # Преобразование колонки 'price' в числовой формат, заменяя некорректные значения на NaN
+    combined["price"] = pd.to_numeric(combined["price"], errors="coerce")
+
+    # Проверка на наличие NaN после преобразования
+    if combined["price"].isnull().any():
+        raise ValueError("Некоторые значения в колонке 'price' не являются числовыми. Проверьте данные.")
+
+    # Применение MinMaxScaler
     scaler = MinMaxScaler()
     combined["price"] = scaler.fit_transform(combined[["price"]])
+
 
     X = combined[["price", "category", "interaction"]]
     y = combined["target"]
